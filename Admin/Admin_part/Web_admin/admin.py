@@ -7,10 +7,6 @@ from django.utils.safestring import mark_safe
 
 from .models import (Patient, Psychologist, Sessions,)
 
-# admin.site.register(Patient)
-# admin.site.register(Psychologist)
-# admin.site.register(Sessions)
-
 
 @register(Patient)
 class MyUserAdmin(UserAdmin):

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}
+  {% if is_edit %}
+    Edit session
+  {% else %}
+    New session
+  {% endif %}    
+{% endblock %}
+{% block content %}
+<form method="post" enctype="multipart/form-data" {% if is_edit %} 
+              action="{% url 'web_admin:session_edit' session.id %}" 
+              {% else %} action="{% url 'web_admin:session_create' %}" 
+              {% endif %}
+                >
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">
+  {% if is_edit %}
+    Safe
+  {% else %}
+    Add
+  {% endif %}               
+</button> 
+</form> 
+{% endblock %}

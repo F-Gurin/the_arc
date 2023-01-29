@@ -1,9 +1,11 @@
-# import datetime
 from datetime import date
 from django.db import models
+from django.utils import timezone
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 from django.contrib.auth.models import AbstractUser
-# from django.core.validators import MinValueValidator
+from django.contrib.auth.hashers import make_password
 from django.db import models
 
 class Language(models.TextChoices):
@@ -40,6 +42,32 @@ class User(AbstractUser):
     email = models.EmailField(max_length=254,
                               verbose_name='Email',
                               )
+    tg_id = models.IntegerField(default=0,
+                                verbose_name='Telegram ID'
+                                )
+    is_bot = models.BooleanField(default=False, )
+    tg_first_name = models.CharField(max_length=150,
+                                     verbose_name='Telegram first name'
+                                     )
+    tg_last_name = models.CharField(max_length=150,
+                                    verbose_name='Telegram last name'
+                                    )
+    tg_username = models.CharField(max_length=150,
+                                   verbose_name='Telegram username'
+                                   )
+    language_code = models.CharField(max_length=3,
+                                     choices=Language.choices,
+                                     default=Language.RUSSIAN,
+                                     )
+    can_join_groups = models.BooleanField(default=False, )
+    can_read_all_group_messages = models.BooleanField(default=False, )
+    supports_inline_queries = models.BooleanField(default=False, )
+    is_premium = models.BooleanField(default=False, )
+    added_to_attachment_menu = models.BooleanField(default=False, )
+    last_button_pressed = models.CharField(default="rootButton",
+                                           max_length=150,
+                                           verbose_name='Last pressed button'
+                                           )
 
     class Meta:
         verbose_name = 'User'
@@ -49,6 +77,18 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
+    def save(self, *args, **kwargs):
+        if not self.password:
+            self.password = make_password(
+                self.username, salt=None, hasher='default')
+        if not self.tg_first_name:
+            self.tg_first_name = self.first_name
+        if not self.tg_last_name:
+            self.tg_last_name = self.last_name
+        if not self.tg_username:
+            self.tg_username = self.username
+        super(User, self).save(*args, **kwargs)
+
 
 class Sessions(models.Model):
 
@@ -56,6 +96,12 @@ class Sessions(models.Model):
         INDIVIDUAL = 'IND', 'Individual'
         GROUP = 'GRP', 'Group'
         WEBINAR = 'WEB', 'Webinar'
+
+    def validate_date_time(date_time):
+        if date_time < timezone.now():
+            raise ValidationError(_('The date cannot be in the past!'),
+                                  params={'Date': date_time},
+                                  )
 
     psychologists = models.ForeignKey(
         'Psychologist',
@@ -68,7 +114,9 @@ class Sessions(models.Model):
         verbose_name='patient',
         blank=True,
         null=True,)
-    date_time = models.DateTimeField(blank=True, null=True,)
+    date_time = models.DateTimeField(default=timezone.now(),
+                                     blank=True, null=True,
+                                     validators=[validate_date_time])
     session_type = models.CharField(
         max_length=3,
         choices=Session_types.choices,
@@ -107,6 +155,8 @@ class Patient(User):
                                           blank=True, null=True,)
     approved_time = models.DateTimeField(verbose_name='Approved time',
                                          blank=True, null=True,)
+    experienced = models.BooleanField(default=False)
+    patient_info_flag = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = 'Patient'
@@ -128,6 +178,7 @@ class Psychologist(User):
         related_name='psychologist',
         blank=True,
         null=True,)
+    tg_authorized = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = 'Psychologist'
