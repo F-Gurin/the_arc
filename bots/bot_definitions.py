@@ -1,8 +1,6 @@
 import json
 import telebot
 
-from bot_configs.config import AUTHORIZED_USERS
-
 json.JSONEncoder.default = lambda self, obj: getattr(obj.__class__, "to_dict")(obj)
 
 # class UserEncoder(json.JSONEncoder):
@@ -103,12 +101,12 @@ class Patient(AuthorizedUser):
 
 class Psychologist(AuthorizedUser):
 
-    authorized = []
+    authorized_users = []
 
     def __init__(self, telebot_user, last_button_pressed):
         super().__init__(telebot_user)
         self.lastButtonPressed = last_button_pressed
-        self.authorized = self.id in self.authorized # AUTHORIZED_USERS
+        self.authorized = self.id in self.authorized_users # AUTHORIZED_USERS
 
     def to_dict(self):
         to_return = super().to_dict()
