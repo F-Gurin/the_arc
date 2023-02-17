@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% comment %} {% load thumbnail %} {% endcomment %}
+{% block title %}Main page{% endblock %}
+{% block content %}
+    {% comment %} {% include 'web_admin/includes/switcher.html' %} {% endcomment %}
+
+  {% include 'web_admin/includes/paginator.html' %}
+
+{% endblock %}

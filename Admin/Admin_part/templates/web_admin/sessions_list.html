@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Sessions list{% endblock %}
+
+{% block content %}
+
+  {% for session in page_obj %}
+    <article>
+      <ul>
+        <li>
+          Patient: {{ session.patient }}
+        </li>
+        <li>
+          Session date and time: {{ session.date_time|date:"d E Y" }} {{ session.date_time|time:"H:i" }}
+        </li>
+          <li>
+          Session type: {{ session.session_type }}
+        </li>
+      </ul>
+      <p>
+        <a href="{% url 'web_admin:session_detail' session.id %}">Detail session's information</a>
+      </p>  
+      <p>
+        {% if session.patient %} 
+          <a href="{% url 'web_admin:patient' session.patient.id %}">Detail patient's information</a>
+        {% endif %}
+      </p>
+      {% if not forloop.last %}<hr>{% endif %}
+    </article>
+  {% endfor %}
+
+  {% include 'web_admin/includes/paginator.html' %}
+
+{% endblock %}
