@@ -1,6 +1,9 @@
 import json
 import telebot
-from bot_definitions import KeyboardButton, Patient
+from bot_configs.models import KeyboardButton, Patient
+
+import bot_configs.config
+from app import models
 
 from bot_configs.config import PATIENTS_BOT_TOKEN as TOKEN
 bot = telebot.TeleBot(TOKEN)
@@ -201,31 +204,50 @@ markup_patient_info_experience.add('❌Нет', '✅Да', row_width=2)
 markup_patient_info_experience.add('⏮Меню')
 
 patients = {}
-try:
-    with open("patients.json", 'r') as json_file:
-        for user in json.load(json_file).values():
-            patients[user['id']] = Patient.de_json(user, locals()[user["lastButtonPressed"]])
-except IOError:
-   pass
+
+# try:
+#     with open("patients.json", 'r') as json_file:
+#         for user in json.load(json_file).values():
+#             patients[user['id']] = Patient.de_json(user, locals()[user["lastButtonPressed"]])
+# except IOError:
+#    pass
 
 @bot.message_handler(commands=['help', 'start'])
 def send_welcome(message):
 
     patients[message.from_user.id] = Patient(message.from_user, rootButton)
-    with open("patients.json", 'w') as json_file:
-        json.dump(
-            patients, #{k:v.to_dict() for k, v in patients.items()},
-            json_file,
-            indent=4,
-            #cls=UserEncoder
-            )
+    patients[message.from_user.id].register_user()
+    # with open("patients.json", 'w') as json_file:
+    #     json.dump(
+    #         patients, #{k:v.to_dict() for k, v in patients.items()},
+    #         json_file,
+    #         indent=4,
+    #         #cls=UserEncoder
+    #         )
     bot.reply_to(message, rootButton.message, reply_markup=rootButton.markup)
 
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
 
     if message.from_user.id not in patients.keys():
-        return None
+        try:
+            from_db = models.PatientsBotUIState.objects.get(tg=message.from_user.id)
+            patients[message.from_user.id] = Patient( # TODO make a constructor for loading from db
+                                                message.from_user, # and get rid of globals()
+                                                globals()[from_db.last_button_pressed],
+                                                patient_info={
+                                                    'appointment type': from_db.appointment_type,
+                                                    'problem': from_db.problem,
+                                                    'first name': from_db.first_name,
+                                                    'last name': from_db.last_name,
+                                                    'telephone number': from_db.telephone_number,
+                                                    'email': from_db.email,
+                                                    'experience': from_db.experience,
+                                                },
+                                                patient_info_flag=from_db.patient_info_flag,
+                                                )
+        except models.PatientsBotUIState.DoesNotExist:
+            return None
     
     if message.text == '⏪Назад':
         patients[message.from_user.id].lastButtonPressed = patients[message.from_user.id].lastButtonPressed.upward_button
@@ -317,7 +339,9 @@ def handle_text(message):
     else:
         bot.send_message(message.from_user.id, "Не могу распознать команду")
 
-    with open("patients.json", 'w') as json_file:
-        json.dump(patients, json_file, indent=4)
+    patients[message.from_user.id].save() # TODO optimize
+
+    # with open("patients.json", 'w') as json_file:
+    #     json.dump(patients, json_file, indent=4)
 
 bot.polling(non_stop=True, interval=0)

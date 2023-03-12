@@ -1,6 +1,9 @@
 import json
 import telebot
-from bot_definitions import KeyboardButton, Psychologist
+from bot_configs.models import KeyboardButton, Psychologist
+
+import bot_configs.config
+from app import models
 
 from bot_configs.config import PSYCHOLOGISTS_BOT_TOKEN as TOKEN
 bot = telebot.TeleBot(TOKEN)
