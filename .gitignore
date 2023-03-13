@@ -150,3 +150,4 @@ media/
 
 patients.json
 psychologists.json
+app/migrations/0001_initial.py

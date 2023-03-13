@@ -314,7 +314,7 @@ def handle_text(message):
                 )
         elif patients[message.from_user.id].patient_info['experience'] is None:
             patients[message.from_user.id].patient_info['experience'] = message.text
-            # TODO save info
+            patients[message.from_user.id].save_appointment() # TODO save info
             bot.send_message(
                 message.from_user.id,
                 "Спасибо! Сохранил Ваши ответы. В ближайшее время направлю информацию о возможности записи.",

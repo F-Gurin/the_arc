@@ -37,9 +37,10 @@ class PatientsBotUIState(models.Model):
 class Session(models.Model):
 
     session_id = models.AutoField(primary_key=True, default=0)
-    patient_id = models.ForeignKey('TgUser', on_delete=models.CASCADE, related_name='+', null=True, blank=True)
-    psychologist_id = models.ForeignKey('TgUser', on_delete=models.CASCADE, null=True, blank=True, related_name='+')
-    time = models.DateField( null=True, blank=True)
+    patient = models.ForeignKey('TgUser', on_delete=models.CASCADE, related_name='patient', null=True, blank=True)
+    psychologist = models.ForeignKey('TgUser', on_delete=models.CASCADE, null=True, blank=True, related_name='psychologist')
+    reqiuest_time = models.DateTimeField(auto_now_add=True)
+    scheduled_time = models.DateTimeField(null=True, blank=True)
 
     appointment_type = models.CharField(max_length=20, null=True, blank=True)
     problem = models.CharField(max_length=80, null=True, blank=True)

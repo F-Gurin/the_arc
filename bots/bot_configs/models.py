@@ -55,6 +55,7 @@ class AuthorizedUser(telebot.types.User):
             is_premium=telebot_user.is_premium,
             added_to_attachment_menu=telebot_user.added_to_attachment_menu
             )
+        AuthorizedUser.register_user(self)
         AuthorizedUser.save(self)
 
     def save(self):
@@ -80,15 +81,6 @@ class AuthorizedUser(telebot.types.User):
                     username += '_' + str(000) # TODO generate a random password and return it to the user
             user = User.objects.create_user(username, password='testpass', id=self.id)
             return user
-
-    def get_model(self):
-        return models.TgUser(
-                tg_id=self.id,
-                first_name=self.first_name,
-                last_name=self.last_name,
-                username=self.username,
-                language_code=self.language_code,
-                )
     
     # def to_dict(self):
     #     return super().to_dict()
@@ -122,7 +114,7 @@ class Patient(AuthorizedUser):
     def save(self):
         super().save()
         models.PatientsBotUIState(
-            tg=super().get_model(),
+            tg=models.TgUser.objects.get(tg=self.id),
             patient_info_flag=self.patient_info_flag,
             appointment_type=self.patient_info['appointment type'],
             problem=self.patient_info['problem'],
@@ -132,6 +124,18 @@ class Patient(AuthorizedUser):
             email=self.patient_info['email'],
             experience=self.patient_info['experience'],
             last_button_pressed=self.lastButtonPressed.name,
+            ).save()
+
+    def save_appointment(self):
+        models.Session(
+            patient=models.TgUser.objects.get(tg=self.id),
+            appointment_type=self.patient_info['appointment type'],
+            problem=self.patient_info['problem'],
+            first_name=self.patient_info['first name'],
+            last_name=self.patient_info['last name'],
+            telephone_number=self.patient_info['telephone number'],
+            email=self.patient_info['email'],
+            experience=self.patient_info['experience'],
             ).save()
 
     def to_dict(self):
