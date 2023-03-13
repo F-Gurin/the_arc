@@ -39,7 +39,7 @@ class Session(models.Model):
     session_id = models.AutoField(primary_key=True, default=0)
     patient = models.ForeignKey('TgUser', on_delete=models.CASCADE, related_name='patient', null=True, blank=True)
     psychologist = models.ForeignKey('TgUser', on_delete=models.CASCADE, null=True, blank=True, related_name='psychologist')
-    reqiuest_time = models.DateTimeField(auto_now_add=True)
+    request_time = models.DateTimeField(auto_now_add=True)
     scheduled_time = models.DateTimeField(null=True, blank=True)
 
     appointment_type = models.CharField(max_length=20, null=True, blank=True)
